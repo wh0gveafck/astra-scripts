@@ -25,9 +25,9 @@ EOF
 # adding  /etc/apt/sources.list (Astra Linux repos)
 echo "Replacing contents of /etc/apt/sources.list..."
 cat << EOF > /etc/apt/sources.list
-deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-main/     1.7_x86-64 main contrib non-free
-deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-update/   1.7_x86-64 main contrib non-free
-deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-base/     1.7_x86-64 main contrib non-free
+deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-main/ 1.7_x86-64 main contrib non-free
+deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-update/ 1.7_x86-64 main contrib non-free
+deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-base/ 1.7_x86-64 main contrib non-free
 deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-extended/ 1.7_x86-64 main contrib non-free
 deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-extended/ 1.7_x86-64 astra-ce
 deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/uu/last/repository-update/ 1.7_x86-64 main contrib non-free
@@ -44,8 +44,8 @@ then
     apt-get install -y curl
 fi
 
-curl -fsSL https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/apt.gpg | apt-key add -
-echo "deb https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/dists buster main" | tee /etc/apt/sources.list.d/php.list
+curl -fsSL https://web.archive.org/web/20240418130532/https://packages.sury.org/php/apt.gpg | apt-key add -
+echo "deb https://web.archive.org/web/20240418132656/https://packages.sury.org/php/ buster main" | tee /etc/apt/sources.list.d/php.list
 
 # packages list update
 echo "Doing apt update..."
