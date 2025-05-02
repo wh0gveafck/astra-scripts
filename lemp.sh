@@ -45,7 +45,7 @@ then
 fi
 
 curl -fsSL https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/apt.gpg | apt-key add -
-echo "deb https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/ buster main" | tee /etc/apt/sources.list.d/php.list
+echo "deb https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/dists buster main" | tee /etc/apt/sources.list.d/php.list
 
 # packages list update
 echo "Doing apt update..."
