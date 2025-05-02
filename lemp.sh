@@ -1,33 +1,43 @@
 #!/bin/bash
 
-# Скрипт для автоматической установки LEMP на Astr
+# Script to install LEMP stack on Astra Linux
 
-# Переменные (настройте под ваши нужды)
+# Variables (Please setup it)
 DATABASE_ROOT_PASSWORD="ваш_mysql_root_пароль" # Замените!
-DATABASE_NAME="assholedb" # Имя базы данных
-DATABASE_USER="assholeuser" # Имя пользователя базы данных
-DATABASE_PASSWORD="asshole" # Пароль пользователя базы данных
+DATABASE_NAME="assholedb" # DB name
+DATABASE_USER="assholeuser" # DB user username
+DATABASE_PASSWORD="asshole" # DB user password
 PHP_VERSION="7.4"  #  или 8.0, 7.4, и т.д.
 
-# Проверка наличия прав root
+# checking
 if [[ $EUID -ne 0 ]]; then
-  echo "Необходимо запустить скрипт от имени root."
+  echo "You must be root."
   exit 1
 fi
 
-# Комментируем содержимое /etc/apt/preferences.d/smolensk
-echo "Комментируем /etc/apt/preferences.d/smolensk для использования стандартных репозиториев..."
+# Commenting out some shit in /etc/apt/preferences.d/smolensk
+echo "commenting out some shit in /etc/apt/preferences.d/smolensk for allow us usage packages not only of our release..."
 cat << EOF > /etc/apt/preferences.d/smolensk
 #Package: *
 #Pin: release n=1.7_x86-64
 #Pin-Priority: 900
 EOF
+# adding  /etc/apt/sources.list (Astra Linux repos)
+echo "Replacing contents of /etc/apt/sources.list..."
+cat << EOF > /etc/apt/sources.list
+deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-main/     1.7_x86-64 main contrib non-free
+deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-update/   1.7_x86-64 main contrib non-free
+deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-base/     1.7_x86-64 main contrib non-free
+deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-extended/ 1.7_x86-64 main contrib non-free
+deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-extended/ 1.7_x86-64 astra-ce
+deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/uu/last/repository-update/ 1.7_x86-64 main contrib non-free
+EOF
 
-# Добавление репозитория PHP (зеркало)
-echo "Добавление репозитория PHP (зеркало)..."
+# Adding a php mirror
+echo "adding a php mirror..."
 apt-get install -y apt-transport-https ca-certificates gnupg2 software-properties-common
 
-# Проверка наличия curl
+# Curl availability
 if ! command -v curl &> /dev/null
 then
     echo "Installing Curl..."
@@ -37,16 +47,16 @@ fi
 curl -fsSL https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/sury.gpg
 echo "deb [signed-by=/usr/share/keyrings/sury.gpg] https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/php.list
 
-# Обновление списка пакетов
-echo "Обновление списка пакетов..."
+# packages list update
+echo "Doing apt update..."
 apt-get update
 
-# Установка Nginx
-echo "Установка Nginx..."
+# Install Nginx
+echo "=NGINX INSTALL="
 apt-get install -y nginx
 
-# Настройка Nginx (простая конфигурация по умолчанию)
-echo "Настройка Nginx..."
+# Setup Nginx
+echo "=Nginx SETUP="
 rm /etc/nginx/sites-available/default
 rm /etc/nginx/sites-enabled/default
 
@@ -73,59 +83,54 @@ server {
 EOF
 
 ln -s /etc/nginx/sites-available/shit.conf /etc/nginx/sites-enabled/shit.conf
-# Создание директории для сайта
-echo "Создание директории для сайта..."
+
+echo "creating folder..."
 mkdir -p /var/www/shit #
 
 chown -R www-data:www-data /var/www/shit
 chmod -R 755 /var/www/shit # Замените!
 
 # Перезапуск Nginx
-echo "Перезапуск Nginx..."
+echo "restart Nginx unit..."
 systemctl restart nginx
 
 # Установка MariaDB
-echo "Установка MariaDB..."
+echo "=MARIADB INSTALL="
 apt-get install -y mariadb-server
 
 # Настройка MariaDB
-echo "Настройка MariaDB..."
+echo "=MARIADB SETUP=..."
 
-# Замена небезопасного пароля root (ОЧЕНЬ ВАЖНО!)
+# replacing root db (very important!)
 mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$DATABASE_ROOT_PASSWORD';"
 mysql -u root -e "FLUSH PRIVILEGES;"
 
-# Создание базы данных и пользователя
-echo "Создание базы данных и пользователя..."
+# Creating DB
+echo "database..."
 mysql -u root -p"$DATABASE_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;"
 mysql -u root -p"$DATABASE_ROOT_PASSWORD" -e "CREATE USER '$DATABASE_USER'@'localhost' IDENTIFIED BY '$DATABASE_PASSWORD';"
 mysql -u root -p"$DATABASE_ROOT_PASSWORD" -e "GRANT ALL PRIVILEGES ON $DATABASE_NAME.* TO '$DATABASE_USER'@'localhost';"
 mysql -u root -p"$DATABASE_ROOT_PASSWORD" -e "FLUSH PRIVILEGES;"
 
-# Установка PHP и расширений
-echo "Установка PHP и расширений..."
+# php install
+echo "=PHP INSTALL="
 apt-get install -y php$PHP_VERSION php$PHP_VERSION-fpm php$PHP_VERSION-mysql php$PHP_VERSION-cli php$PHP_VERSION-curl php$PHP_VERSION-gd php$PHP_VERSION-intl php$PHP_VERSION-mbstring php$PHP_VERSION-xml php$PHP_VERSION-zip
 
-# Настройка PHP-FPM
-echo "Настройка PHP-FPM..."
-# (Опционально: Можете настроить php.ini и pool-файлы php-fpm здесь)
 
-# Перезапуск PHP-FPM
-echo "Перезапуск PHP-FPM..."
+echo "php-fpm restart..."
 systemctl restart php$PHP_VERSION-fpm
 
-# Проверка установки (создание phpinfo.php)
-echo "Проверка установки..."
-cat <<EOF > /var/www/your_website/phpinfo.php # Замените!
+# Create php info (создание phpinfo.php)
+echo "Creating php info to check if lemp installed..."
+cat <<EOF > /var/www/shit/phpinfo.php 
 <?php
 phpinfo();
 ?>
 EOF
 
-# Вывод информации
-echo "LEMP успешно установлен!"
-echo "Доступ к phpinfo: http://yourip.com/phpinfo.php" # Зам
-echo "Не забудьте заменить your_domain.com и настроить Nginx правильно."
-echo "Также, удалите phpinfo.php после проверки."
+# 
+echo "LEMP appears to be successfully installed."
+echo "Please check it at http://yourip/phpinfo.php" 
+
 
 exit 0
