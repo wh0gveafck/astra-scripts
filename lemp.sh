@@ -7,7 +7,7 @@ DATABASE_ROOT_PASSWORD="ваш_mysql_root_пароль" # Замените!
 DATABASE_NAME="assholedb" # DB name
 DATABASE_USER="assholeuser" # DB user username
 DATABASE_PASSWORD="asshole" # DB user password
-PHP_VERSION="7.4"  #  или 8.0, 7.4, и т.д.
+PHP_VERSION="7.3"  #  или 8.0, 7.4, и т.д.
 
 # checking
 if [[ $EUID -ne 0 ]]; then
@@ -44,8 +44,6 @@ then
     apt-get install -y curl
 fi
 
-curl -fsSL https://web.archive.org/web/20240418130532/https://packages.sury.org/php/apt.gpg | apt-key add -
-echo "deb https://web.archive.org/web/20240418132656/https://packages.sury.org/php/ buster main" | tee /etc/apt/sources.list.d/php.list
 
 # packages list update
 echo "Doing apt update..."
