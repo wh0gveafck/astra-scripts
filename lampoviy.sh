@@ -102,7 +102,7 @@ echo "Setup MariaDB..."
 mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$DATABASE_ROOT_PASSWORD';"
 mysql -u root -e "FLUSH PRIVILEGES;"
 
-# Создание базы данных и пользователя
+
 echo "Сreating database..."
 mysql -u root -p"$DATABASE_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;"
 mysql -u root -p"$DATABASE_ROOT_PASSWORD" -e "CREATE USER '$DATABASE_USER'@'localhost' IDENTIFIED BY '$DATABASE_PASSWORD';"
