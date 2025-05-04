@@ -71,11 +71,11 @@ chmod -R 755 /var/www/your_website  # Replace this!
 echo "Creating the Apache2 virtual host configuration..."
 cat <<EOF > /etc/apache2/sites-available/your_website.conf
 <VirtualHost *:80>
-    ServerName your_domain.com # Replace this!
-    DocumentRoot /var/www/your_website # Replace this!
-    <Directory /var/www/your_website>  # Replace this!
+    ServerName localhost
+    DocumentRoot /var/www/your_website 
+    <Directory /var/www/your_website>  
         AllowOverride All
-        Require all granted  # ALLOW ACCESS FROM ALL IP ADDRESSES - SECURITY RISK!
+        Require all granted  
     </Directory>
 
     ErrorLog \${APACHE_LOG_DIR}/error.log
