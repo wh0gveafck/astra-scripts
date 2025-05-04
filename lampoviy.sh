@@ -1,22 +1,22 @@
 #!/bin/bash
 
-# LAMP STACK INSTALL SCRIPT FOR ASTRA LINUX
+# Script to automatically install LAMP (Linux, Apache, MariaDB, PHP) on Astra Linux
 
-# Variables (change it)
-DATABASE_ROOT_PASSWORD="asshole"  # замените
-DATABASE_NAME="testdb"  # замените
-DATABASE_USER=assholeuser" # замените
-DATABASE_PASSWORD="example_password"  # zamenite
-PHP_VERSION="7.3"  # или 8.0, 7.4, и т.д. 
+# Variables (adjust these to your needs)
+DATABASE_ROOT_PASSWORD="your_mysql_root_password"  # Replace this!
+DATABASE_NAME="exampledb"  # Database name
+DATABASE_USER="exampleuser"  # Database user name
+DATABASE_PASSWORD="example_password"  # Database user password
+PHP_VERSION="8.1"  # or 8.0, 7.4, etc. (Compatible with the sury.org repository)
 
-# Пroot checkt
+# Check if the script is run with root privileges
 if [[ $EUID -ne 0 ]]; then
-  echo "Error, you must be root."
+  echo "This script must be run as root."
   exit 1
 fi
 
-# Replacing sources list
-echo "Replacing repos in /etc/apt/sources.list to astra repos..."
+# Replace the contents of /etc/apt/sources.list with Astra Linux repositories
+echo "Replacing the contents of /etc/apt/sources.list with Astra Linux repositories..."
 cat << EOF > /etc/apt/sources.list
 deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-main/     1.7_x86-64 main contrib non-free
 deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-update/   1.7_x86-64 main contrib non-free
@@ -26,56 +26,56 @@ deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-extended/ 1.7_x8
 deb https://dl.astralinux.ru/astra/stable/1.7_x86-64/uu/last/repository-update/ 1.7_x86-64 main contrib non-free
 EOF
 
-# Commenting out some shit in /etc/apt/preferences.d/smolensk
-echo "commenting out some shit in /etc/apt/preferences.d/smolensk for allow us usage packages not only of our release..."
+# Comment out the contents of /etc/apt/preferences.d/smolensk to use standard repositories
+echo "Commenting out /etc/apt/preferences.d/smolensk to use standard repositories..."
 cat << EOF > /etc/apt/preferences.d/smolensk
 #Package: *
 #Pin: release n=1.7_x86-64
 #Pin-Priority: 900
 EOF
 
-echo "Astra Mode disable"
-sudo echo "AstraMode off" >> /etc/apache2/apache2.conf
-
-# adding php mirror(disabled)
-echo "adding php mirror..."
+# Add the PHP repository (mirror)
+echo "Adding the PHP repository (mirror)..."
 apt-get install -y apt-transport-https ca-certificates gnupg2 software-properties-common
 
-# curl check
+# Check if curl is installed
 if ! command -v curl &> /dev/null
 then
   echo "Installing curl..."
   apt-get install -y curl
 fi
 
-#curl -fsSL https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/sury.gpg
-#echo "deb [signed-by=/usr/share/keyrings/sury.gpg] https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/php.list
+# Import the GPG key for the PHP repository
+curl -fsSL https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/sury.gpg
+# Add the PHP repository to the sources list
+echo "deb [signed-by=/usr/share/keyrings/sury.gpg] https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/php.list
 
-# update repos
-echo "Doing apt update..."
+# Update the package lists
+echo "Updating the package lists..."
 apt-get update
 
 # Install Apache2
 echo "Installing Apache2..."
 apt-get install -y apache2
 
+# Configure Apache2
+echo "Configuring Apache2..."
 
-echo "apache2 setup..."
+# Create the website directory
+echo "Creating the website directory..."
+mkdir -p /var/www/your_website  # Replace this!
+chown -R www-data:www-data /var/www/your_website  # Replace this!
+chmod -R 755 /var/www/your_website  # Replace this!
 
-echo "Сreating site directory..."
-mkdir -p /var/www/shit  # Замените!
-chown -R www-data:www-data /var/www/shit  # Замените!
-chmod -R 755 /var/www/shit  # Замените!
-
-\
-echo "Сreating vhost for Apache2..."
-cat <<EOF > /etc/apache2/sites-available/lamp.conf
+# Create the Apache2 virtual host configuration
+echo "Creating the Apache2 virtual host configuration..."
+cat <<EOF > /etc/apache2/sites-available/your_website.conf
 <VirtualHost *:80>
-    ServerName localhost # Замените!
-    DocumentRoot /var/www/shit # Замените!
-    <Directory /var/www/shit>  # Замените!
+    ServerName your_domain.com # Replace this!
+    DocumentRoot /var/www/your_website # Replace this!
+    <Directory /var/www/your_website>  # Replace this!
         AllowOverride All
-        Require all granted  # РАЗРЕШИТЬ ДОСТУП СО ВСЕХ IP-АДРЕСОВ
+        Require all granted  # ALLOW ACCESS FROM ALL IP ADDRESSES - SECURITY RISK!
     </Directory>
 
     ErrorLog \${APACHE_LOG_DIR}/error.log
@@ -83,52 +83,52 @@ cat <<EOF > /etc/apache2/sites-available/lamp.conf
 </VirtualHost>
 EOF
 
-# Аctivate vhost and rewrite module
+# Enable the virtual host and the rewrite module
 a2ensite your_website.conf
 a2enmod rewrite
 
-# apache 2 restart
-echo "attempting to restart apache 2 unit..."
+# Restart Apache2
+echo "Restarting Apache2..."
 systemctl restart apache2
 
-# Mariadb install
+# Install MariaDB
 echo "Installing MariaDB..."
 apt-get install -y mariadb-server
 
-# MariaDB setup
-echo "Setup MariaDB..."
+# Configure MariaDB
+echo "Configuring MariaDB..."
 
-# root password 
+# Replace the insecure root password (VERY IMPORTANT!)
 mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$DATABASE_ROOT_PASSWORD';"
 mysql -u root -e "FLUSH PRIVILEGES;"
 
-
-echo "Сreating database..."
+# Create the database and user
+echo "Creating the database and user..."
 mysql -u root -p"$DATABASE_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;"
 mysql -u root -p"$DATABASE_ROOT_PASSWORD" -e "CREATE USER '$DATABASE_USER'@'localhost' IDENTIFIED BY '$DATABASE_PASSWORD';"
 mysql -u root -p"$DATABASE_ROOT_PASSWORD" -e "GRANT ALL PRIVILEGES ON $DATABASE_NAME.* TO '$DATABASE_USER'@'localhost';"
 mysql -u root -p"$DATABASE_ROOT_PASSWORD" -e "FLUSH PRIVILEGES;"
 
-# php install
-echo "Php install..."
+# Install PHP and extensions
+echo "Installing PHP and extensions..."
 apt-get install -y php$PHP_VERSION libapache2-mod-php$PHP_VERSION php$PHP_VERSION-mysql php$PHP_VERSION-cli php$PHP_VERSION-curl php$PHP_VERSION-gd php$PHP_VERSION-intl php$PHP_VERSION-mbstring php$PHP_VERSION-xml php$PHP_VERSION-zip
 
-# restart apache2
-echo "restarting apache2..."
+# Restart Apache2 to activate PHP
+echo "Restarting Apache2 to activate PHP..."
 systemctl restart apache2
 
-
-echo "Environment check..."
-cat <<EOF > /var/www/your_website/phpinfo.php  # Замените!
+# Verify the installation (create phpinfo.php)
+echo "Verifying the installation..."
+cat <<EOF > /var/www/your_website/phpinfo.php  # Replace this!
 <?php
 phpinfo();
 ?>
 EOF
 
-
-echo "LAMP appears to be installed!"
-echo "Access to phpinfo: http://your_ipOr_domain/phpinfo.php"  # 
-echo "Do not forget to type correct address
-
+# Output information
+echo "LAMP successfully installed!"
+echo "Access phpinfo: http://your_domain.com/phpinfo.php"  # Replace this!
+echo "Remember to replace your_domain.com and configure Apache2 correctly."
+echo "Also, delete phpinfo.php after verification."
 
 exit 0
